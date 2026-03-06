@@ -9,6 +9,7 @@ Content-Type: application/json
   "password": "admin"
 }
 
+
 ###Create user for Itaration 2
 POST http://localhost:4111/api/v1/admin/users
 Content-Type: application/json
@@ -19,6 +20,7 @@ Authorization: Basic YWRtaW46YWRtaW4=
   "password": "StrongPass77$7",
   "role": "USER"
 }
+
 
 ###User login
 POST http://localhost:4111/api/v1/auth/login
@@ -31,10 +33,12 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 
 }
 
+
 ###Create the first account
 POST http://localhost:4111/api/v1/accounts
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
 
 ###Create the secont account
 POST http://localhost:4111/api/v1/accounts
@@ -42,36 +46,21 @@ Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 
 
-###Positive test: Deposit 250.5 account 1
+###Positive test: Deposit 0.01 to account 1
 POST http://localhost:4111/api/v1/accounts/deposit
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 
 {
   "id": 1,
-  "balance": 250.5
+  "balance": 0.01
 }
 
 
-###Positive test: Deposit 5000 account 1
-POST http://localhost:4111/api/v1/accounts/deposit
+###Positive test : Verify account transactions after depositing 0.01
+GET http://localhost:4111/api/v1/accounts/1/transactions
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
-
-{
-  "id": 1,
-  "balance": 5000
-}
-
-###Negative test: Deposit 5000.01
-POST http://localhost:4111/api/v1/accounts/deposit
-Content-Type: application/json
-Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
-
-{
-  "id": 1,
-  "balance": 5000.01
-}
 
 
 ###Negative test: Deposit cannot be less than 0
@@ -84,7 +73,65 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
   "balance": -1
 }
 
-###Positive test: Transfer money
+
+###Verify account transactions remain unchanged after failed deposit
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Positive test: Deposit 4999.99 (boundary value)
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "id": 1,
+  "balance": 4999.99
+}
+
+
+###Verify account transactions after depositing 4999.99
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Positive test: Deposit 5000 (maximum allowed value)
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "id": 1,
+  "balance": 5000
+}
+
+
+###Verify account transactions after depositing 5000
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Negative test: Reject deposit greater than maximum (5000.01)
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "id": 1,
+  "balance": 5000.01
+}
+
+
+###Verify account transactions remain unchanged after failed deposit
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Positive test: Transfer 0.01 from account 1 to account 2
 POST http://localhost:4111/api/v1/accounts/transfer
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
@@ -92,21 +139,17 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 {
   "senderAccountId": 1,
   "receiverAccountId": 2,
-  "amount": 250.75
+  "amount": 0.01
 }
 
-###Positive test: Transfer money max sum 10000
-POST http://localhost:4111/api/v1/accounts/transfer
+
+###Verify account transactions after transferring 0.01
+GET http://localhost:4111/api/v1/accounts/1/transactions
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 
-{
-  "senderAccountId": 1,
-  "receiverAccountId": 2,
-  "amount": 10000
-}
 
-###Negative test: Transfer 0 money
+###Negative test: Reject transfer with amount 0
 POST http://localhost:4111/api/v1/accounts/transfer
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
@@ -118,7 +161,67 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 }
 
 
-###Negative test: Deposit to non-existing account
+###Verify account transactions remain unchanged after failed transfer
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Positive test:Transfer 9999.99 (boundary value)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 9999.99
+}
+
+
+###Verify account transactions after transferring 9999.99
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+//Invalid transfer: insufficient funds or invalid accounts, response code  400
+###Positive test: Transfer 10000 (maximum allowed amount)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 10000
+}
+
+
+###Verify account transactions after transferring 10000
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Negative test: Reject transfer greater than maximum (10000.01)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 10000.01
+}
+
+###Verify account transactions remain unchanged after failed transfer
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Negative test: Reject transfer to non-existing account
 POST http://localhost:4111/api/v1/accounts/transfer
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
@@ -130,18 +233,19 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 }
 
 
-###Positive test : Get accounts transactions
+###Verify account transactions remain unchanged after failed transfer
 GET http://localhost:4111/api/v1/accounts/1/transactions
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 
 
-###Positive test: Get customer profile
+###Positive test: Retrieve customer profile
 GET http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 
-###Positive test: Apdate customer profile
+
+###Positive test: Update customer profile
 PUT http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
@@ -150,7 +254,14 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
   "name": "John Smith"
 }
 
-###Negative test:One word name
+
+###Verify customer profile after update
+GET http://localhost:4111/api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Negative test: Reject profile update with one-word name
 PUT http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
@@ -160,7 +271,13 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
 }
 
 
-###Negative test: Numbers in name
+###Verify customer profile remains unchanged
+GET http://localhost:4111/api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Negative test:  Reject profile update with numbers in name
 PUT http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
@@ -169,10 +286,23 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
   "name": "Itan12345 Jonson"
 }
 
-###Negative test: Apdate customer profile without autorization
+
+###Verify customer profile remains unchanged
+GET http://localhost:4111/api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Negative test: Reject profile update without authorization
 PUT http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 
 {
-  "name": "John Smith"
+  "name": "John Djill"
 }
+
+
+###Verify customer profile remains unchanged
+GET http://localhost:4111/api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
