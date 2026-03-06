@@ -73,8 +73,24 @@ Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
   "balance": -1
 }
 
-
 ###Verify account transactions remain unchanged after failed deposit
+GET http://localhost:4111/api/v1/accounts/1/transactions
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+
+###Positive test: Deposit 250.01 to account 1
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
+
+{
+  "id": 1,
+  "balance": 250.01
+}
+
+
+###Verify account transactions after depositing 250.01
 GET http://localhost:4111/api/v1/accounts/1/transactions
 Content-Type: application/json
 Authorization: Basic dXNlcjd0ZXN0OlN0cm9uZ1Bhc3M3NyQ3
