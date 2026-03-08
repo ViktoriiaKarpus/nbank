@@ -39,6 +39,20 @@ public class DepositMoney extends BaseTest {
                 .body("role", Matchers.equalTo("USER"));
     }
 
+
+    @Test
+    public void verifyThatUserWasCreated() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", "Basic YWRtaW46YWRtaW4=")
+                .get("http://localhost:4111/api/v1/admin/users")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+
     @Test
     public void userCanLoginWithValidDataTest() {
         given()
@@ -132,6 +146,25 @@ public class DepositMoney extends BaseTest {
     }
 
     @Test
+    public void verifyAccountTransactionsAfterDepositingFiveHundred() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/accounts/1/transactions")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("id", Matchers.hasItem(1))
+                .body("amount", Matchers.hasItem(5000.0f))
+                .body("type", Matchers.hasItem("DEPOSIT"))
+                .body("relatedAccountId", Matchers.hasItem(1));
+
+    }
+
+
+    @Test
     public void depositWithoutAuthorizationTest() {
         given()
                 .contentType(ContentType.JSON)
@@ -148,6 +181,18 @@ public class DepositMoney extends BaseTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_UNAUTHORIZED);
 
+    }
+
+    @Test
+    public void verifyAccountTransactionsAfterWithoutAuthorization() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .when()
+                .get("http://localhost:4111/api/v1/accounts/1/transactions")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_UNAUTHORIZED);
 
     }
 
@@ -189,6 +234,21 @@ public class DepositMoney extends BaseTest {
                 .then()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.containsString("Bad Request"));
+    }
+
+    @Test
+    public void verifyTransactionsAfterInvalidDeposit() {
+
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/accounts/1/transactions")
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("amount", Matchers.not(Matchers.hasItem(5000.1f)))
+                .body("amount", Matchers.not(Matchers.hasItem(-1f)));
     }
 
 }

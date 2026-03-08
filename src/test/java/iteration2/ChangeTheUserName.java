@@ -95,6 +95,23 @@ public class ChangeTheUserName extends BaseTest {
     }
 
     @Test
+    public void verifyCustomerProfileAfterUpdating() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo("John Smith"))
+                .body("role", Matchers.equalTo("USER"))
+                .log().all();
+
+    }
+
+    @Test
     public void updateCustomerProfileByAddingJustOneNameTest(){
         String requestBody = """
                 {
@@ -117,6 +134,20 @@ public class ChangeTheUserName extends BaseTest {
 
     }
 
+    @Test
+    public void verifyCustomerProfileAfterAddingJustOneName() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .log().all()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo("John Smith"));
+    }
 
 
     @Test
@@ -138,8 +169,21 @@ public class ChangeTheUserName extends BaseTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo("Name must contain two words with letters only"));
+    }
 
-
+    @Test
+    public void verifyCustomerProfileAfterAddingNumbersInNameName() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .log().all()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo("John Smith"));
     }
 
     @Test
@@ -161,15 +205,28 @@ public class ChangeTheUserName extends BaseTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo("Name must contain two words with letters only"));
+    }
 
-
+    @Test
+    public void verifyCustomerProfileAfterWithEmptyName() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .log().all()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo("John Smith"));
     }
 
     @Test
     public void updateCustomerProfileWithoutAuthorizationTest(){
         String requestBody = """
                 {
-                  "name": "John12345""
+                  "name": "John12345"
                 }
                 """;
 
@@ -183,8 +240,21 @@ public class ChangeTheUserName extends BaseTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_UNAUTHORIZED)
                 .log().all();
-
     }
 
+    @Test
+    public void verifyCustomerProfileWithoutAuthorization() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", userAuth)
+                .when()
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .log().all()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo("John Smith"));
+    }
 
 }
