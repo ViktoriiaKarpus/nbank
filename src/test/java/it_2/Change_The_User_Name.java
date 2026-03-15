@@ -1,16 +1,17 @@
-package iteration2;
+package it_2;
 
 import io.restassured.http.ContentType;
-import iteration2.utils.BaseTest;
+import it_2.utils.Base_Test;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 
-public class ChangeTheUserName extends BaseTest {
+public class Change_The_User_Name extends Base_Test {
 
     private final String userAuth = "Basic dXNlcjh0ZXN0OlN0cm9uZ1Bhc3M3NyQ3";
+
     @Test
     public void adminCanCreateUserTest() {
 
@@ -261,5 +262,4 @@ public class ChangeTheUserName extends BaseTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("name", Matchers.equalTo("John Smith"));
     }
-
 }

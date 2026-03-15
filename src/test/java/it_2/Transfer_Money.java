@@ -1,4 +1,4 @@
-package iteration2;
+package it_2;
 
 import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
@@ -10,7 +10,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 
-public class  TransferMoney {
+public class Transfer_Money {
     private final String userAuth = "Basic dXNlcjJ0ZXN0OlN0cm9uZ1Bhc3M3NyQ3";
 
     @Test

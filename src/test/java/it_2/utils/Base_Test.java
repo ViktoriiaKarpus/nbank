@@ -1,4 +1,4 @@
-package iteration2.utils;
+package it_2.utils;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
@@ -7,8 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import java.util.List;
 
-
-public class BaseTest {
+public class Base_Test {
     @BeforeAll
     public static void setUPRestAssured(){
         RestAssured.filters(

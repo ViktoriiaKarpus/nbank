@@ -1,7 +1,7 @@
-package iteration2;
+package it_2;
 
 import io.restassured.http.ContentType;
-import iteration2.utils.BaseTest;
+import it_2.utils.Base_Test;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -13,8 +13,7 @@ import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 
-public class DepositMoney extends BaseTest {
-
+public class Deposit_Money extends Base_Test {
     private final String userAuth = "Basic dXNlcjJ0ZXN0OlN0cm9uZ1Bhc3M3NyQ3";
 
     @Test
@@ -103,26 +102,26 @@ public class DepositMoney extends BaseTest {
                 .body("balance", Matchers.equalTo(0f));
     }
 
-   //  @Test
-   //  public void depositTwoHundredAndFifty(){
-   //      given()
-   //              .contentType(ContentType.JSON)
-   //              .accept(ContentType.JSON)
-   //              .header("Authorization", userAuth)
-   //              .body("""
-   //                      {
-   //                       "id": 1,
-   //                        "balance": 250.5
-   //                      }
-   //                      """)
-   //              .when()
-   //              .post("http://localhost:4111/api/v1/accounts/deposit")
-   //              .then()
-   //              .assertThat()
-   //              .statusCode(HttpStatus.SC_OK)
-   //              .body("id", Matchers.equalTo(1))
-   //              .body("balance", Matchers.equalTo(250.5f));
-   //  }
+    //  @Test
+    //  public void depositTwoHundredAndFifty(){
+    //      given()
+    //              .contentType(ContentType.JSON)
+    //              .accept(ContentType.JSON)
+    //              .header("Authorization", userAuth)
+    //              .body("""
+    //                      {
+    //                       "id": 1,
+    //                        "balance": 250.5
+    //                      }
+    //                      """)
+    //              .when()
+    //              .post("http://localhost:4111/api/v1/accounts/deposit")
+    //              .then()
+    //              .assertThat()
+    //              .statusCode(HttpStatus.SC_OK)
+    //              .body("id", Matchers.equalTo(1))
+    //              .body("balance", Matchers.equalTo(250.5f));
+    //  }
 //
     @Test
     public void depositFiveThousandPositiveTest() {
@@ -253,6 +252,3 @@ public class DepositMoney extends BaseTest {
     }
 
 }
-
-
-
