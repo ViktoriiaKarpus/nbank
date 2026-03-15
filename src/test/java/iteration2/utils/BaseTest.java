@@ -9,11 +9,13 @@ import java.util.List;
 
 
 public class BaseTest {
+
     @BeforeAll
     public static void setUPRestAssured(){
         RestAssured.filters(
                 List.of(new RequestLoggingFilter(),
                         new ResponseLoggingFilter())
         );
+
     }
 }
