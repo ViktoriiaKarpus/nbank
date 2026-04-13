@@ -14,5 +14,4 @@ public class DepositResponse extends BaseModel{
 
     private long id;
     private Double balance;
-
 }

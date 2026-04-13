@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 
-public class TransactionResponse extends BaseModel{
+public class TransactionResponse extends BaseModel {
 
     private long id;
     private Double amount;
-    private String massage;
+    private String message;
     private long relatedAccountId;
 }

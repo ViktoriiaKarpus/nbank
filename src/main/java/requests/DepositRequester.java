@@ -7,9 +7,7 @@ import models.DepositRequest;
 
 import static io.restassured.RestAssured.given;
 
-public class DepositRequester extends Request<DepositRequest>{
-    private static final String ENDPOINT_POST = "/api/v1/accounts/deposit";
-
+public class DepositRequester extends Request<DepositRequest> {
 
     public DepositRequester(RequestSpecification requestSpecification, ResponseSpecification responseSpecification) {
         super(requestSpecification, responseSpecification);
@@ -20,18 +18,16 @@ public class DepositRequester extends Request<DepositRequest>{
         return given()
                 .spec(requestSpecification)
                 .body(model)
-                .post(ENDPOINT_POST)
+                .post("/api/v1/accounts/deposit")
                 .then()
                 .assertThat()
                 .spec(responseSpecification);
-
     }
 
-    public ValidatableResponse getTransactions(int accountId){
-
+    public ValidatableResponse getTransactions(int accountId) {
         return given()
                 .spec(requestSpecification)
-                .get("/api/v1/accounts" + accountId + "transactions")
+                .get("/api/v1/accounts/" + accountId + "/transactions")
                 .then()
                 .assertThat()
                 .spec(responseSpecification);

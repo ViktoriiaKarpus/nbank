@@ -13,6 +13,5 @@ import lombok.NoArgsConstructor;
 public class UpdateCustomerProfileRequest extends BaseModel{
 
     private String name;
-    private String role;// I am not sure
-
+    private String role;// не уверенна
 }

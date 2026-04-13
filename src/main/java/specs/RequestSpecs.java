@@ -1,22 +1,19 @@
 package specs;
 
-
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import models.LoginUserRequests;
+import models.LoginUserRequest;
 import requests.LoginUserRequester;
 
 import java.util.List;
 
 public class RequestSpecs {
+    private RequestSpecs() {}
 
-    private RequestSpecs(){}
-
-    private static RequestSpecBuilder defaultRequestBuilder(){
+    private static RequestSpecBuilder defaultRequestBuilder() {
         return new RequestSpecBuilder()
                 .setContentType(ContentType.JSON)
                 .setAccept(ContentType.JSON)
@@ -27,22 +24,22 @@ public class RequestSpecs {
                 .setBaseUri("http://localhost:4111");
     }
 
-    public static RequestSpecification unauthSpec(){
+    public static RequestSpecification unauthSpec() {
         return defaultRequestBuilder().build();
     }
 
-    public static RequestSpecification adminSpec(){
+    public static RequestSpecification adminSpec() {
         return defaultRequestBuilder()
                 .addHeader("Authorization", "Basic YWRtaW46YWRtaW4=")
                 .build();
     }
 
-    public static RequestSpecification authAsUser(String username, String password){
+    public static RequestSpecification authAsUser(String username, String password) {
         String userAuthHeader = new LoginUserRequester(
                 RequestSpecs.unauthSpec(),
-                ResponseSpecs.requestReturnsOk()
+                ResponseSpecs.requestReturnsOK()
         )
-                .post(LoginUserRequests.builder()
+                .post(LoginUserRequest.builder()
                         .username(username)
                         .password(password)
                         .build())
@@ -54,7 +51,7 @@ public class RequestSpecs {
                 .build();
     }
 
-    public static RequestSpecification authWithToken(String token){
+    public static RequestSpecification authWithToken(String token) {
         return defaultRequestBuilder()
                 .addHeader("Authorization", token)
                 .build();

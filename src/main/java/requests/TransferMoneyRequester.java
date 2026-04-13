@@ -9,8 +9,6 @@ import static io.restassured.RestAssured.given;
 
 public class TransferMoneyRequester extends Request<TransferRequest> {
 
-    private static final String ENDPOINT_POST = "/api/v1/accounts/transfer";
-
     public TransferMoneyRequester(RequestSpecification requestSpecification, ResponseSpecification responseSpecification) {
         super(requestSpecification, responseSpecification);
     }
@@ -20,20 +18,18 @@ public class TransferMoneyRequester extends Request<TransferRequest> {
         return given()
                 .spec(requestSpecification)
                 .body(model)
-                .post(ENDPOINT_POST)
+                .post("/api/v1/accounts/transfer")
                 .then()
                 .assertThat()
                 .spec(responseSpecification);
     }
 
-    public ValidatableResponse getTransactions(int accountId){
-
+    public ValidatableResponse getTransactions(int accountId) {
         return given()
                 .spec(requestSpecification)
-                .get("/api/v1/accounts" + accountId + "transactions")
+                .get("/api/v1/accounts/" + accountId + "/transactions")
                 .then()
                 .assertThat()
                 .spec(responseSpecification);
     }
-
 }

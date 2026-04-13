@@ -1,5 +1,7 @@
 package models;
 
+
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +14,14 @@ import lombok.NoArgsConstructor;
 
 public class UpdateCustomerProfileResponse extends BaseModel{
 
-    private String name;
-    private String role;
+    private Customer customer;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class Customer {
+        private String name;
+        private String role;
+    }
 }
