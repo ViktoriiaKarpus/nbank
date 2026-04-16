@@ -16,9 +16,13 @@ import requests.LoginUserRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 
-public class DepositMoneyTest extends BaseTest{ // работает
+import static org.hamcrest.MatcherAssert.assertThat;
+import static specs.RequestSpecs.AUTHORIZATION_HEADER;
+
+public class DepositMoneyTest extends BaseTest {
 
     private CreateUserRequest createRandomUser() {
         return CreateUserRequest.builder()
@@ -45,7 +49,7 @@ public class DepositMoneyTest extends BaseTest{ // работает
         )
                 .post(loginRequest)
                 .extract()
-                .header("Authorization");
+                .header(AUTHORIZATION_HEADER);
     }
 
     private int createAccount(String userAuth) {
@@ -67,21 +71,25 @@ public class DepositMoneyTest extends BaseTest{ // работает
     }
 
     @Test
-    public void createAccountTest() {
+    public void createAccountTest() {//done
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
-        new CreateAccountRequester(
+        CreateAccountResponse response = new CreateAccountRequester(
                 RequestSpecs.authWithToken(userAuth),
                 ResponseSpecs.entityWasCreated()
         )
                 .post(new CreateAccountRequest())
-                .body("id", Matchers.notNullValue())
-                .body("balance", Matchers.equalTo(0f));
+                .extract()
+                .as(CreateAccountResponse.class);
+
+        assertThat(response.getId(), Matchers.notNullValue());
+        assertThat(response.getBalance(), Matchers.equalTo(0.0));//0F
+
     }
 
     @Test
-    public void depositFiveThousandPositiveTest() {
+    public void depositFiveThousandPositiveTest() {//done
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
@@ -91,17 +99,21 @@ public class DepositMoneyTest extends BaseTest{ // работает
                 .balance(5000d)
                 .build();
 
-        new DepositRequester(
+        DepositResponse response = new DepositRequester(
                 RequestSpecs.authWithToken(userAuth),
                 ResponseSpecs.requestReturnsOK()
         )
                 .post(request)
-                .body("id", Matchers.equalTo(accountId))
-                .body("balance", Matchers.equalTo(5000f));
+                .extract()
+                .as(DepositResponse.class);
+
+        assertThat(response.getId(), Matchers.equalTo(accountId));
+        assertThat(response.getBalance(), Matchers.equalTo(5000.0));
+
     }
 
     @Test
-    public void verifyAccountTransactionsAfterDepositingFiveThousandTest() {
+    public void verifyAccountTransactionsAfterDepositingFiveThousandTest() {//done
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
@@ -116,14 +128,22 @@ public class DepositMoneyTest extends BaseTest{ // работает
                 ResponseSpecs.requestReturnsOK()
         ).post(request);
 
-        new DepositRequester(
+        TransactionResponse[] transactions = new DepositRequester(
                 RequestSpecs.authWithToken(userAuth),
                 ResponseSpecs.requestReturnsOK()
         )
                 .getTransactions(accountId)
-                .body("amount", Matchers.hasItem(5000.0f))
-                .body("type", Matchers.hasItem("DEPOSIT"))
-                .body("relatedAccountId", Matchers.hasItem(accountId));
+                .extract()
+                .as(TransactionResponse[].class);
+
+        assertThat(
+                Arrays.stream(transactions).anyMatch(transaction ->
+                        transaction.getAmount().equals(5000.0)
+                                && transaction.getType().equals("DEPOSIT")
+                                && transaction.getRelatedAccountId().equals((long) accountId)
+                ),
+                Matchers.equalTo(true)
+        );
     }
 
     @ParameterizedTest

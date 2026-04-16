@@ -13,6 +13,9 @@ import java.util.List;
 public class RequestSpecs {
     private RequestSpecs() {}
 
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String ADMIN_AUTH_HEADER = "Basic YWRtaW46YWRtaW4=";
+
     private static RequestSpecBuilder defaultRequestBuilder() {
         return new RequestSpecBuilder()
                 .setContentType(ContentType.JSON)
@@ -30,7 +33,7 @@ public class RequestSpecs {
 
     public static RequestSpecification adminSpec() {
         return defaultRequestBuilder()
-                .addHeader("Authorization", "Basic YWRtaW46YWRtaW4=")
+                .addHeader(AUTHORIZATION_HEADER, ADMIN_AUTH_HEADER)
                 .build();
     }
 
@@ -44,16 +47,16 @@ public class RequestSpecs {
                         .password(password)
                         .build())
                 .extract()
-                .header("Authorization");
+                .header(AUTHORIZATION_HEADER);
 
         return defaultRequestBuilder()
-                .addHeader("Authorization", userAuthHeader)
+                .addHeader(AUTHORIZATION_HEADER, userAuthHeader)
                 .build();
     }
 
     public static RequestSpecification authWithToken(String token) {
         return defaultRequestBuilder()
-                .addHeader("Authorization", token)
+                .addHeader(AUTHORIZATION_HEADER, token)
                 .build();
     }
 }

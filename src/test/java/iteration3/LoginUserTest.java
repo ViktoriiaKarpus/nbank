@@ -12,6 +12,8 @@ import requests.LoginUserRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import static specs.RequestSpecs.AUTHORIZATION_HEADER;
+
 public class LoginUserTest extends BaseTest{
     @Test
     public void adminCanGenerateAuthTokenTest() {
@@ -47,6 +49,6 @@ public class LoginUserTest extends BaseTest{
                         .username(userRequest.getUsername())
                         .password(userRequest.getPassword())
                         .build())
-                .header("Authorization", Matchers.notNullValue());
+                .header(AUTHORIZATION_HEADER, Matchers.notNullValue());
     }
 }

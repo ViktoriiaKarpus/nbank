@@ -2,10 +2,7 @@ package iteration3;
 
 import generators.RandomData;
 import io.restassured.RestAssured;
-import models.CreateUserRequest;
-import models.LoginUserRequest;
-import models.UpdateCustomerProfileRequest;
-import models.UserRole;
+import models.*;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -14,6 +11,9 @@ import requests.CustomerProfileRequester;
 import requests.LoginUserRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
 public class ChangeTheUserNameTest extends BaseTest {
 
@@ -42,20 +42,24 @@ public class ChangeTheUserNameTest extends BaseTest {
         )
                 .post(loginRequest)
                 .extract()
-                .header("Authorization");
+                .header(AUTHORIZATION_HEADER);
     }
 
     @Test
     public void adminCanCreateUserTest() {
         CreateUserRequest request = createRandomUser();
 
-        new AdminCreateUserRequester(
+        CreateUserResponse response = new AdminCreateUserRequester(
                 RequestSpecs.adminSpec(),
                 ResponseSpecs.entityWasCreated()
         )
                 .post(request)
-                .body("username", Matchers.equalTo(request.getUsername()))
-                .body("role", Matchers.equalTo("USER"));
+                .extract()
+                .as(CreateUserResponse.class);
+
+        assertThat(response.getUsername(), Matchers.equalTo(request.getUsername()));
+        assertThat(response.getRole(), Matchers.equalTo("USER"));
+
     }
 
     @Test
@@ -77,7 +81,7 @@ public class ChangeTheUserNameTest extends BaseTest {
                 ResponseSpecs.requestReturnsOK()
         )
                 .post(loginRequest)
-                .header("Authorization", Matchers.notNullValue());
+                .header(AUTHORIZATION_HEADER, Matchers.notNullValue());
     }
 
     @Test
@@ -85,13 +89,16 @@ public class ChangeTheUserNameTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
-        new CustomerProfileRequester(
+        CustomerProfileResponse response = new CustomerProfileRequester(
                 RequestSpecs.authWithToken(userAuth),
                 ResponseSpecs.requestReturnsOK()
         )
                 .get()
-                .body("username", Matchers.equalTo(createRequest.getUsername()))
-                .body("role", Matchers.equalTo("USER"));
+                .extract()
+                .as(CustomerProfileResponse.class);
+
+        assertThat(response.getUsername(), Matchers.equalTo(createRequest.getUsername()));
+        assertThat(response.getRole(), Matchers.equalTo("USER"));
     }
 
     @Test
@@ -103,17 +110,22 @@ public class ChangeTheUserNameTest extends BaseTest {
                 .name("John Smith")
                 .build();
 
-        new CustomerProfileRequester(
+        UpdateCustomerProfileResponse response = new CustomerProfileRequester(
                 RequestSpecs.authWithToken(userAuth),
                 ResponseSpecs.requestReturnsOK()
         )
                 .put(request)
-                .body("customer.name", Matchers.equalTo("John Smith"))
-                .body("customer.role", Matchers.equalTo("USER"));
+                .extract()
+                .as(UpdateCustomerProfileResponse.class);
+
+        assertThat(response.getCustomer().getName(),Matchers.equalTo("John Smith"));
+        assertThat(response.getCustomer().getRole(),Matchers.equalTo("USER"));
+
     }
 
     @Test
     public void verifyCustomerProfileAfterUpdating() {
+
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
@@ -128,9 +140,12 @@ public class ChangeTheUserNameTest extends BaseTest {
 
         requester.put(updateRequest);
 
-        requester.get()
-                .body("name", Matchers.equalTo("John Smith"))
-                .body("role", Matchers.equalTo("USER"));
+        CustomerProfileResponse response = requester.get()
+                .extract()
+                .as(CustomerProfileResponse.class);
+
+        assertThat(response.getName(), Matchers.equalTo("John Smith"));
+        assertThat(response.getRole(), Matchers.equalTo("USER"));
     }
 
     @Test

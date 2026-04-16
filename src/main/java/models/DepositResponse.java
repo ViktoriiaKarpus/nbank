@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class DepositResponse extends BaseModel{
 
-    private long id;
+    private Integer id;
     private Double balance;
 }
