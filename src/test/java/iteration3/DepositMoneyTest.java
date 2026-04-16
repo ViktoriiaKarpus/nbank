@@ -84,12 +84,12 @@ public class DepositMoneyTest extends BaseTest {
                 .as(CreateAccountResponse.class);
 
         assertThat(response.getId(), Matchers.notNullValue());
-        assertThat(response.getBalance(), Matchers.equalTo(0.0));//0F
+        assertThat(response.getBalance(), Matchers.equalTo(0.0));
 
     }
 
     @Test
-    public void depositFiveThousandPositiveTest() {//done
+    public void depositFiveThousandPositiveTest() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
@@ -113,7 +113,7 @@ public class DepositMoneyTest extends BaseTest {
     }
 
     @Test
-    public void verifyAccountTransactionsAfterDepositingFiveThousandTest() {//done
+    public void verifyAccountTransactionsAfterDepositingFiveThousandTest() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);

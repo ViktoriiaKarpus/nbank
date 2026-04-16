@@ -67,7 +67,7 @@ public class TransferMoneyTest extends BaseTest {
     }
 
     @Test
-    public void transferMoneyFromTheFirstAccountToTheSecondAccountTest1() {//done
+    public void transferMoneyFromTheFirstAccountToTheSecondAccountTest1() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int senderAccountId = createAccount(userAuth);
