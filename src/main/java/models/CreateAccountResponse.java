@@ -14,9 +14,6 @@ import java.util.List;
 
 public class CreateAccountResponse extends BaseModel{
 
-   //private long id;
-   //private Double balance;
-
     private long id;
     private String accountNumber;
     private Double balance;

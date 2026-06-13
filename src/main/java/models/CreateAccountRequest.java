@@ -15,6 +15,4 @@ public class CreateAccountRequest extends BaseModel{
 
    private long id;
    private Double balance;
-
-
 }
