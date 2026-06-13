@@ -1,7 +1,6 @@
 package iteration3;
 
 import generators.RandomData;
-import io.restassured.RestAssured;
 import models.*;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
@@ -10,7 +9,12 @@ import requests.*;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static specs.RequestSpecs.AUTHORIZATION_HEADER;
+
+
+import io.restassured.response.ValidatableResponse;
 
 public class TransferMoneyTest extends BaseTest {
 
@@ -86,7 +90,6 @@ public class TransferMoneyTest extends BaseTest {
                 .body(Matchers.containsString("Transfer successful"));
     }
 
-
     @Test
     public void userCannotTransferMoreThan10000Test() {
         CreateUserRequest createRequest = createRandomUser();
@@ -98,13 +101,12 @@ public class TransferMoneyTest extends BaseTest {
                 .balance(10000.00)
                 .build();
 
-        RestAssured
-                .given(RequestSpecs.authWithToken(userAuth))
-                .body(request)
-                .post("/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.equalTo("Deposit amount cannot exceed 5000"));
+        ValidatableResponse response = new DepositRequester(
+                RequestSpecs.authWithToken(userAuth),
+                ResponseSpecs.requestReturnsBadRequestWithText("Deposit amount cannot exceed 5000")
+        ).post(request);
+
+        assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_BAD_REQUEST));
     }
 
     @Test
@@ -121,13 +123,11 @@ public class TransferMoneyTest extends BaseTest {
                 .amount(250.75)
                 .build();
 
-        RestAssured
-                .given(RequestSpecs.authWithToken(userAuth))
-                .body(request)
-                .post("/api/v1/accounts/transfer")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
+        ValidatableResponse response = new TransferMoneyRequester(
+                RequestSpecs.authWithToken(userAuth),
+                ResponseSpecs.requestReturnsBadRequestWithText("Invalid transfer: insufficient funds or invalid accounts")
+        ).post(request);
+
+        assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_BAD_REQUEST));
     }
-
 }
-

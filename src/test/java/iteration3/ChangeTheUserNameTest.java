@@ -1,9 +1,7 @@
 package iteration3;
 
 import generators.RandomData;
-import io.restassured.RestAssured;
 import models.*;
-import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import requests.AdminCreateUserRequester;
@@ -11,6 +9,8 @@ import requests.CustomerProfileRequester;
 import requests.LoginUserRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
+
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static specs.RequestSpecs.AUTHORIZATION_HEADER;
@@ -58,8 +58,8 @@ public class ChangeTheUserNameTest extends BaseTest {
                 .as(CreateUserResponse.class);
 
         assertThat(response.getUsername(), Matchers.equalTo(request.getUsername()));
-        assertThat(response.getRole(), Matchers.equalTo("USER"));
-
+        assertThat(response.getRole(), Matchers.equalTo(UserRole.USER.name()));
+        assertThat(response.getId(), Matchers.notNullValue());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class ChangeTheUserNameTest extends BaseTest {
                 .as(CustomerProfileResponse.class);
 
         assertThat(response.getUsername(), Matchers.equalTo(createRequest.getUsername()));
-        assertThat(response.getRole(), Matchers.equalTo("USER"));
+        assertThat(response.getRole(), Matchers.is(UserRole.USER));
     }
 
     @Test
@@ -106,8 +106,10 @@ public class ChangeTheUserNameTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
+        String randomName = RandomData.getFullName();
+
         UpdateCustomerProfileRequest request = UpdateCustomerProfileRequest.builder()
-                .name("John Smith")
+                .name(randomName)
                 .build();
 
         UpdateCustomerProfileResponse response = new CustomerProfileRequester(
@@ -118,8 +120,8 @@ public class ChangeTheUserNameTest extends BaseTest {
                 .extract()
                 .as(UpdateCustomerProfileResponse.class);
 
-        assertThat(response.getCustomer().getName(),Matchers.equalTo("John Smith"));
-        assertThat(response.getCustomer().getRole(),Matchers.equalTo("USER"));
+        assertThat(response.getCustomer().getName(), Matchers.equalTo(randomName));
+        assertThat(response.getCustomer().getRole(), Matchers.equalTo(UserRole.USER.name()));
 
     }
 
@@ -129,8 +131,10 @@ public class ChangeTheUserNameTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
+        String randomName = RandomData.getFullName();
+
         UpdateCustomerProfileRequest updateRequest = UpdateCustomerProfileRequest.builder()
-                .name("John Smith")
+                .name(randomName)
                 .build();
 
         CustomerProfileRequester requester = new CustomerProfileRequester(
@@ -144,8 +148,8 @@ public class ChangeTheUserNameTest extends BaseTest {
                 .extract()
                 .as(CustomerProfileResponse.class);
 
-        assertThat(response.getName(), Matchers.equalTo("John Smith"));
-        assertThat(response.getRole(), Matchers.equalTo("USER"));
+        assertThat(response.getName(), Matchers.equalTo(updateRequest.getName()));
+        assertThat(response.getRole(), Matchers.is(UserRole.USER));
     }
 
     @Test
@@ -153,16 +157,51 @@ public class ChangeTheUserNameTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
+        String randomName = RandomData.getUsername();
+
         UpdateCustomerProfileRequest request = UpdateCustomerProfileRequest.builder()
-                .name("John")
+                .name(randomName)
                 .build();
 
-        RestAssured
-                .given(RequestSpecs.authWithToken(userAuth))
-                .body(request)
-                .put("/api/v1/customer/profile")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
-                .body(Matchers.containsString("Name must contain two words with letters only"));
+        new CustomerProfileRequester(
+                RequestSpecs.authWithToken(userAuth),
+                ResponseSpecs.requestReturnsBadRequestWithText("Name must contain two words with letters only")
+        )
+                .put(request);
+    }
+
+    @Test
+    public void updateCustomerProfileByAddingJustOneNameNameNotChangedTest() {
+        CreateUserRequest createRequest = createRandomUser();
+        String userAuth = createAndLoginUser(createRequest);
+
+        CustomerProfileRequester requester = new CustomerProfileRequester(
+                RequestSpecs.authWithToken(userAuth),
+                ResponseSpecs.requestReturnsOK()
+        );
+
+        CustomerProfileResponse initialProfile = requester.get()
+                .extract()
+                .as(CustomerProfileResponse.class);
+
+        String initialName = initialProfile.getName();
+
+        String invalidName = RandomData.getUsername();
+
+        UpdateCustomerProfileRequest invalidRequest = UpdateCustomerProfileRequest.builder()
+                .name(invalidName)
+                .build();
+
+        new CustomerProfileRequester(
+                RequestSpecs.authWithToken(userAuth),
+                ResponseSpecs.requestReturnsBadRequestWithText("Name must contain two words with letters only")
+        )
+                .put(invalidRequest);
+
+        CustomerProfileResponse currentProfile = requester.get()
+                .extract()
+                .as(CustomerProfileResponse.class);
+
+        assertThat(currentProfile.getName(), Matchers.equalTo(initialName));
     }
 }

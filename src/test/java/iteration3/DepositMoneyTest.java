@@ -1,7 +1,7 @@
 package iteration3;
 
 import generators.RandomData;
-import io.restassured.RestAssured;
+import io.restassured.response.ValidatableResponse;
 import models.*;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
 public class DepositMoneyTest extends BaseTest {
@@ -65,8 +66,8 @@ public class DepositMoneyTest extends BaseTest {
 
     public static Stream<Arguments> depositInvalidData() {
         return Stream.of(
-                Arguments.of(5000.1),
-                Arguments.of(-1d)
+                Arguments.of(5000.1, "Deposit amount cannot exceed 5000"),
+                Arguments.of(-1d, "Deposit amount must be at least 0.01")
         );
     }
 
@@ -84,7 +85,7 @@ public class DepositMoneyTest extends BaseTest {
                 .as(CreateAccountResponse.class);
 
         assertThat(response.getId(), Matchers.notNullValue());
-        assertThat(response.getBalance(), Matchers.equalTo(0.0));
+        assertThat(response.getBalance(), equalTo(0.0));
 
     }
 
@@ -107,8 +108,8 @@ public class DepositMoneyTest extends BaseTest {
                 .extract()
                 .as(DepositResponse.class);
 
-        assertThat(response.getId(), Matchers.equalTo(accountId));
-        assertThat(response.getBalance(), Matchers.equalTo(5000.0));
+        assertThat(response.getId(), equalTo(accountId));
+        assertThat(response.getBalance(), equalTo(5000.0));
 
     }
 
@@ -142,13 +143,13 @@ public class DepositMoneyTest extends BaseTest {
                                 && transaction.getType().equals("DEPOSIT")
                                 && transaction.getRelatedAccountId().equals((long) accountId)
                 ),
-                Matchers.equalTo(true)
+                equalTo(true)
         );
     }
 
     @ParameterizedTest
     @MethodSource("depositInvalidData")
-    void userCannotDepositInvalidAmountTest(double amount) {
+    void userCannotDepositInvalidAmountTest(double amount, String expectedErrorMessage) {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
@@ -158,11 +159,11 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(amount)
                 .build();
 
-        RestAssured
-                .given(RequestSpecs.authWithToken(userAuth))
-                .body(request)
-                .post("/api/v1/accounts/deposit")
-                .then()
-                .statusCode(HttpStatus.SC_BAD_REQUEST);
+        ValidatableResponse response = new DepositRequester(
+                RequestSpecs.authWithToken(userAuth),
+                ResponseSpecs.requestReturnsBadRequestWithText(expectedErrorMessage)
+        ).post(request);
+
+        assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_BAD_REQUEST));
     }
 }

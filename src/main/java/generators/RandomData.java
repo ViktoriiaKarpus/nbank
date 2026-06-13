@@ -4,7 +4,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 public class RandomData {
 
-    private RandomData() {}
+    private RandomData() {
+    }
 
     public static String getUsername() {
         return RandomStringUtils.randomAlphabetic(10).toLowerCase();
@@ -17,7 +18,15 @@ public class RandomData {
                 + "$";
     }
 
+    private static String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    }
+
     public static String getFullName() {
-        return "John Smith";
+        String firstName = RandomStringUtils.randomAlphabetic(6, 10);
+        String lastName = RandomStringUtils.randomAlphabetic(6, 12);
+
+        return capitalize(firstName) + " " +  capitalize(lastName);
     }
 }
