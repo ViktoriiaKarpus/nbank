@@ -165,7 +165,7 @@ public class ChangeTheUserNameTest extends BaseTest {
 
         new CustomerProfileRequester(
                 RequestSpecs.authWithToken(userAuth),
-                ResponseSpecs.requestReturnsBadRequestWithText("Name must contain two words with letters only")
+                ResponseSpecs.requestReturnsBadRequestWithText(ResponseSpecs.NAME_MUST_CONTAIN_TWO_WORDS_WITH_LETTERS_ONLY)
         )
                 .put(request);
     }
@@ -194,7 +194,7 @@ public class ChangeTheUserNameTest extends BaseTest {
 
         new CustomerProfileRequester(
                 RequestSpecs.authWithToken(userAuth),
-                ResponseSpecs.requestReturnsBadRequestWithText("Name must contain two words with letters only")
+                ResponseSpecs.requestReturnsBadRequestWithText(ResponseSpecs.NAME_MUST_CONTAIN_TWO_WORDS_WITH_LETTERS_ONLY)
         )
                 .put(invalidRequest);
 

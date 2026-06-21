@@ -8,6 +8,10 @@ import org.hamcrest.Matchers;
 import java.util.List;
 
 public class ResponseSpecs {
+    public static final String NAME_MUST_CONTAIN_TWO_WORDS_WITH_LETTERS_ONLY= "Name must contain two words with letters only";
+    public static final String DEPOSIT_AMOUNT_CANNOT_EXCEED_5000 = "Deposit amount cannot exceed 5000";
+    public static final String INVALID_TRANSFER_INSUFFICIENT_FUNDS_OR_INVALID_ACCOUNTS= "Invalid transfer: insufficient funds or invalid accounts";
+
     private ResponseSpecs() {
     }
 

@@ -13,7 +13,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
-
 import io.restassured.response.ValidatableResponse;
 
 public class TransferMoneyTest extends BaseTest {
@@ -70,17 +69,24 @@ public class TransferMoneyTest extends BaseTest {
         ).post(request);
     }
 
+    private double generateValidTransferAmount() {
+        return RandomData.getTransferAmount();
+    }
+
     @Test
     public void transferMoneyFromTheFirstAccountToTheSecondAccountTest1() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int senderAccountId = createAccount(userAuth);
         int receiverAccountId = createAccount(userAuth);
-        depositMoney(userAuth, senderAccountId, 5000.00);
+
+        double transferAmount = generateValidTransferAmount();
+
+        depositMoney(userAuth, senderAccountId, transferAmount);
         TransferRequest request = TransferRequest.builder()
                 .senderAccountId(senderAccountId)
                 .receiverAccountId(receiverAccountId)
-                .amount(5000.00)
+                .amount(transferAmount)
                 .build();
         new TransferMoneyRequester(
                 RequestSpecs.authWithToken(userAuth),
@@ -96,14 +102,16 @@ public class TransferMoneyTest extends BaseTest {
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
 
+        double bigAmount = 10000.00;
+
         DepositRequest request = DepositRequest.builder()
                 .id(accountId)
-                .balance(10000.00)
+                .balance(bigAmount)
                 .build();
 
         ValidatableResponse response = new DepositRequester(
                 RequestSpecs.authWithToken(userAuth),
-                ResponseSpecs.requestReturnsBadRequestWithText("Deposit amount cannot exceed 5000")
+                ResponseSpecs.requestReturnsBadRequestWithText(ResponseSpecs.DEPOSIT_AMOUNT_CANNOT_EXCEED_5000)
         ).post(request);
 
         assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_BAD_REQUEST));
@@ -115,19 +123,48 @@ public class TransferMoneyTest extends BaseTest {
         String userAuth = createAndLoginUser(createRequest);
 
         int senderAccountId = createAccount(userAuth);
-        depositMoney(userAuth, senderAccountId, 5000.00);
+
+        double depositAmount = generateValidTransferAmount();
+
+        depositMoney(userAuth, senderAccountId, depositAmount);
 
         TransferRequest request = TransferRequest.builder()
                 .senderAccountId(senderAccountId)
                 .receiverAccountId(999999)
-                .amount(250.75)
+                .amount(generateValidTransferAmount())
                 .build();
 
         ValidatableResponse response = new TransferMoneyRequester(
                 RequestSpecs.authWithToken(userAuth),
-                ResponseSpecs.requestReturnsBadRequestWithText("Invalid transfer: insufficient funds or invalid accounts")
+                ResponseSpecs.requestReturnsBadRequestWithText(ResponseSpecs.INVALID_TRANSFER_INSUFFICIENT_FUNDS_OR_INVALID_ACCOUNTS)
         ).post(request);
 
         assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_BAD_REQUEST));
+    }
+
+    @Test
+    public void userCannotTransferMoneyWithoutAuthorizationTest() {
+        CreateUserRequest createRequest = createRandomUser();
+        String userAuth = createAndLoginUser(createRequest);
+        int senderAccountId = createAccount(userAuth);
+        int receiverAccountId = createAccount(userAuth);
+
+        double transferAmount = generateValidTransferAmount();
+
+        depositMoney(userAuth, senderAccountId, transferAmount);
+
+        TransferRequest request = TransferRequest.builder()
+                .senderAccountId(senderAccountId)
+                .receiverAccountId(receiverAccountId)
+                .amount(transferAmount)
+                .build();
+
+        ValidatableResponse response = new TransferMoneyRequester(
+                RequestSpecs.unauthSpec(),
+                ResponseSpecs.requestReturnsUnauthorized()
+        )
+                .post(request);
+
+        assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_UNAUTHORIZED));
     }
 }

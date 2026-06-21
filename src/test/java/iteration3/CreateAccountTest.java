@@ -29,7 +29,7 @@ public class CreateAccountTest extends BaseTest{
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated()
         )
-                .post(null)
+                .post()
                 .extract()
                 .as(CreateAccountResponse.class);
 
