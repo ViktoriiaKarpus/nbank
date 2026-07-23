@@ -28,4 +28,8 @@ public class CreateAccountRequester extends Request<BaseModel>{
                 .assertThat()
                 .spec(responseSpecification);
     }
+
+    public ValidatableResponse post() {
+        return post(null);
+    }
 }

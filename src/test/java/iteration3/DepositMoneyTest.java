@@ -78,7 +78,7 @@ public class DepositMoneyTest extends BaseTest {
     }
 
     @Test
-    public void createAccountTest() {//done
+    public void createAccountTest() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
@@ -95,42 +95,23 @@ public class DepositMoneyTest extends BaseTest {
 
     }
 
-    @Test
-    public void depositMinimumAllowedAmountTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-        int accountId = createAccount(userAuth);
-
-        double minAmount = 0.01;
-
-        DepositRequest request = DepositRequest.builder()
-                .id(accountId)
-                .balance(minAmount)
-                .build();
-
-        DepositResponse response = new DepositRequester(
-                RequestSpecs.authWithToken(userAuth),
-                ResponseSpecs.requestReturnsOK()
-        )
-                .post(request)
-                .extract()
-                .as(DepositResponse.class);
-
-        assertThat(response.getId(), equalTo(accountId));
-        assertThat(response.getBalance(), equalTo(minAmount));
+    public static Stream<Arguments> depositMinAndMaxAllowedAmountData() {
+        return Stream.of(
+                Arguments.of(5000.0),
+                Arguments.of(0.01)
+        );
     }
 
-    @Test
-    public void depositMaximumAllowedAmountTest() {
+    @ParameterizedTest
+    @MethodSource("depositMinAndMaxAllowedAmountData")
+    void userCanDepositAllowedAmountTest(double amount) {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
 
-        double maxAmount = 5000.0;
-
         DepositRequest request = DepositRequest.builder()
                 .id(accountId)
-                .balance(maxAmount)
+                .balance(amount)
                 .build();
 
         DepositResponse response = new DepositRequester(
@@ -142,31 +123,7 @@ public class DepositMoneyTest extends BaseTest {
                 .as(DepositResponse.class);
 
         assertThat(response.getId(), equalTo(accountId));
-        assertThat(response.getBalance(), equalTo(maxAmount));
-    }
-
-    @Test
-    public void depositFiveThousandPositiveTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-        int accountId = createAccount(userAuth);
-
-        DepositRequest request = DepositRequest.builder()
-                .id(accountId)
-                .balance(5000d)
-                .build();
-
-        DepositResponse response = new DepositRequester(
-                RequestSpecs.authWithToken(userAuth),
-                ResponseSpecs.requestReturnsOK()
-        )
-                .post(request)
-                .extract()
-                .as(DepositResponse.class);
-
-        assertThat(response.getId(), equalTo(accountId));
-        assertThat(response.getBalance(), equalTo(5000.0));
-
+        assertThat(response.getBalance(), equalTo(amount));
     }
 
     @Test
