@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 
-public class TransactionResponse extends BaseModel {
+public class TransferResponse extends BaseModel {
 
     private Long id;
     private Double amount;

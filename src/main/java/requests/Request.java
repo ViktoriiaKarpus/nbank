@@ -35,4 +35,12 @@ public abstract class Request<T extends BaseModel> {
                 .then()
                 .spec(responseSpecification);
     }
+
+    public ValidatableResponse delete(String endpoint, Object... pathParams) {
+        return given(requestSpecification)
+                .when()
+                .delete(endpoint, pathParams)
+                .then()
+                .spec(responseSpecification);
+    }
 }

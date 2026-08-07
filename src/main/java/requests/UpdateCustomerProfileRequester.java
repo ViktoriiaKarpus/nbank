@@ -28,6 +28,4 @@ public class UpdateCustomerProfileRequester extends Request<BaseModel>{
                     .assertThat()
                     .spec(responseSpecification);
         }
-
-
 }

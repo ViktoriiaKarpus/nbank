@@ -41,5 +41,8 @@ public class AdminCreateUserRequester extends Request<CreateUserRequest> {
                 .statusCode(HttpStatus.SC_OK); // тоже можно подключить ResponseSpec
     }
 
+  //  public ValidatableResponse delete(long id) {
+  //      return super.delete("/api/v1/admin/users/{id}", id);
+  //  }
 }
 

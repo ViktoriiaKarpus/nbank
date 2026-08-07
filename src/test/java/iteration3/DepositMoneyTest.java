@@ -169,13 +169,13 @@ public class DepositMoneyTest extends BaseTest {
                 ResponseSpecs.requestReturnsOK()
         ).post(request);
 
-        TransactionResponse[] transactions = new DepositRequester(
+        TransferResponse[] transactions = new DepositRequester(
                 RequestSpecs.authWithToken(userAuth),
                 ResponseSpecs.requestReturnsOK()
         )
                 .getTransactions(accountId)
                 .extract()
-                .as(TransactionResponse[].class);
+                .as(TransferResponse[].class);
 
         assertThat(
                 Arrays.stream(transactions).anyMatch(transaction ->
