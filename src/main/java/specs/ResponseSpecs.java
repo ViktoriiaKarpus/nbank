@@ -11,6 +11,8 @@ public class ResponseSpecs {
     public static final String NAME_MUST_CONTAIN_TWO_WORDS_WITH_LETTERS_ONLY= "Name must contain two words with letters only";
     public static final String DEPOSIT_AMOUNT_CANNOT_EXCEED_5000 = "Deposit amount cannot exceed 5000";
     public static final String INVALID_TRANSFER_INSUFFICIENT_FUNDS_OR_INVALID_ACCOUNTS= "Invalid transfer: insufficient funds or invalid accounts";
+    public static final String TRANSFER_AMOUNT_CANNOT_EXCEED_10000 = "Transfer amount cannot exceed 10000";
+    public static final String DEPOSIT_AMOUNT_MUST_BE_AT_LEAST_001 = "Deposit amount must be at least 0.01";
 
     private ResponseSpecs() {
     }

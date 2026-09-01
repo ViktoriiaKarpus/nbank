@@ -14,7 +14,4 @@ public abstract class HttpRequest {
     protected RequestSpecification requestSpecification;
     protected Endpoint endpoint;
     protected ResponseSpecification responseSpecification;
-
-
-
 }

@@ -25,6 +25,12 @@ public enum Endpoint {
         CustomerProfileResponse.class
     ),
 
+    UPDATE_CUSTOMER_PROFILE(
+            "/customer/profile",
+            UpdateCustomerProfileRequest.class,
+            UpdateCustomerProfileResponse.class
+    ),
+
     DEPOSIT(
             "/accounts/deposit",
             DepositRequest.class,
@@ -49,12 +55,11 @@ public enum Endpoint {
             TransferResponse.class
     ),
 
-    UPDATE_CUSTOMER_PROFILE(
-            "/customer/profile",
-            UpdateCustomerProfileRequest.class,
-            UpdateCustomerProfileResponse.class
+    TRANSACTIONS(
+            "/accounts/{accountId}/transactions",
+            BaseModel.class,
+            TransferResponse.class
     );
-
 
 
     private final String url;

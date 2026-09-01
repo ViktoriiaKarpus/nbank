@@ -9,10 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import requests.AdminCreateUserRequester;
-import requests.CreateAccountRequester;
-import requests.DepositRequester;
-import requests.LoginUserRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
+import requests.skelethon.requesters.ValidatedCrudRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -34,8 +33,9 @@ public class DepositMoneyTest extends BaseTest {
     }
 
     private String createAndLoginUser(CreateUserRequest createRequest) {
-        new AdminCreateUserRequester(
+        new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.adminSpec(),
+                Endpoint.ADMIN_USER,
                 ResponseSpecs.entityWasCreated()
         ).post(createRequest);
 
@@ -44,23 +44,20 @@ public class DepositMoneyTest extends BaseTest {
                 .password(createRequest.getPassword())
                 .build();
 
-        return new LoginUserRequester(
+        return new ValidatedCrudRequester<LoginUserResponse>(
                 RequestSpecs.unauthSpec(),
+                Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK()
-        )
-                .post(loginRequest)
-                .extract()
-                .header(AUTHORIZATION_HEADER);
+        ).postAndGetHeader(loginRequest, AUTHORIZATION_HEADER);
     }
 
     private int createAccount(String userAuth) {
-        CreateAccountResponse response = new CreateAccountRequester(
+        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated()
         )
-                .post(new CreateAccountRequest())
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(new CreateAccountRequest());
 
         return (int) response.getId();
     }
@@ -71,9 +68,9 @@ public class DepositMoneyTest extends BaseTest {
 
     public static Stream<Arguments> depositInvalidData() {
         return Stream.of(
-                Arguments.of(5000.1, "Deposit amount cannot exceed 5000"),
-                Arguments.of(-1d, "Deposit amount must be at least 0.01"),
-                Arguments.of(0.0, "Deposit amount must be at least 0.01")
+                Arguments.of(5000.1, ResponseSpecs.DEPOSIT_AMOUNT_CANNOT_EXCEED_5000),
+                Arguments.of(-1d, ResponseSpecs.DEPOSIT_AMOUNT_MUST_BE_AT_LEAST_001),
+                Arguments.of(0.0, ResponseSpecs.DEPOSIT_AMOUNT_MUST_BE_AT_LEAST_001)
         );
     }
 
@@ -82,13 +79,12 @@ public class DepositMoneyTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
-        CreateAccountResponse response = new CreateAccountRequester(
+        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated()
         )
-                .post(new CreateAccountRequest())
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(new CreateAccountRequest());
 
         assertThat(response.getId(), Matchers.notNullValue());
         assertThat(response.getBalance(), equalTo(0.0));
@@ -114,13 +110,12 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(amount)
                 .build();
 
-        DepositResponse response = new DepositRequester(
+        DepositResponse response = new ValidatedCrudRequester<DepositResponse>(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK()
         )
-                .post(request)
-                .extract()
-                .as(DepositResponse.class);
+                .post(request);
 
         assertThat(response.getId(), equalTo(accountId));
         assertThat(response.getBalance(), equalTo(amount));
@@ -139,20 +134,20 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(depositAmount)
                 .build();
 
-        DepositResponse response = new DepositRequester(
+        DepositResponse response = new ValidatedCrudRequester<DepositResponse>(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK()
         )
-                .post(request)
-                .extract()
-                .as(DepositResponse.class);
+                .post(request);
 
         assertThat(response.getId(), equalTo(accountId));
         assertThat(response.getBalance(), equalTo(depositAmount));
     }
 
     @Test
-    public void verifyAccountTransactionsAfterDepositingFiveThousandTest() {
+    public void getAccountTransactionsReturnsDepositRecordTest() {
+
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
         int accountId = createAccount(userAuth);
@@ -164,18 +159,17 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(depositAmount)
                 .build();
 
-        new DepositRequester(
+        new ValidatedCrudRequester<DepositResponse>(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK()
         ).post(request);
 
-        TransferResponse[] transactions = new DepositRequester(
+        TransferResponse[] transactions = new ValidatedCrudRequester<TransferResponse>(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.TRANSACTIONS,
                 ResponseSpecs.requestReturnsOK()
-        )
-                .getTransactions(accountId)
-                .extract()
-                .as(TransferResponse[].class);
+        ).getTransactions(accountId);
 
         assertThat(
                 Arrays.stream(transactions).anyMatch(transaction ->
@@ -199,8 +193,9 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(amount)
                 .build();
 
-        ValidatableResponse response = new DepositRequester(
+        ValidatableResponse response = new CrudRequester(
                 RequestSpecs.authWithToken(userAuth),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsBadRequestWithText(expectedErrorMessage)
         ).post(request);
 
