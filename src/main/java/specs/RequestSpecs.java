@@ -9,6 +9,7 @@ import io.restassured.specification.RequestSpecification;
 import models.LoginUserRequest;
 import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.CrudRequester;
+import requests.LoginUserRequester;
 
 import java.util.List;
 
