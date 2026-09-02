@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.CrudRequester;
 import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -24,11 +25,7 @@ public class TransferMoneyTest extends BaseTest {
     }
 
     private String createAndLoginUser(CreateUserRequest createRequest) {
-        new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.ADMIN_USER,
-                ResponseSpecs.entityWasCreated()
-        ).post(createRequest);
+        AdminSteps.createUserFromRequest(createRequest);
 
         LoginUserRequest loginRequest = LoginUserRequest.builder()
                 .username(createRequest.getUsername())
@@ -40,17 +37,6 @@ public class TransferMoneyTest extends BaseTest {
                 Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK()
         ).postAndGetHeader(loginRequest, AUTHORIZATION_HEADER);
-    }
-
-    private int createAccount(String userAuth) {
-        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.ACCOUNTS,
-                ResponseSpecs.entityWasCreated()
-        )
-                .post(new CreateAccountRequest());
-
-        return (int) response.getId();
     }
 
     private void depositMoney(String userAuth, int accountId, double amount) {
@@ -74,12 +60,18 @@ public class TransferMoneyTest extends BaseTest {
     public void transferMoneyFromTheFirstAccountToTheSecondAccountTest1() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
-        int senderAccountId = createAccount(userAuth);
-        int receiverAccountId = createAccount(userAuth);
+
+        int senderAccountId = AdminSteps.createAccount(userAuth);
+        int receiverAccountId = AdminSteps.createAccount(userAuth);
 
         double transferAmount = generateValidTransferAmount();
 
-        depositMoney(userAuth, senderAccountId, transferAmount);
+        DepositRequest depositRequest = DepositRequest.builder()
+                .id(senderAccountId)
+                .balance(transferAmount)
+                .build();
+
+        AdminSteps.makeDeposit(userAuth, depositRequest);
 
         TransferRequest request = TransferRequest.builder()
                 .senderAccountId(senderAccountId)
@@ -87,12 +79,7 @@ public class TransferMoneyTest extends BaseTest {
                 .amount(transferAmount)
                 .build();
 
-        new ValidatedCrudRequester<TransferRequest>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.TRANSFER_MONEY,
-                ResponseSpecs.requestReturnsOK()
-        )
-                .post(request);
+        AdminSteps.transferMoney(userAuth, request);
     }
 
     @Test
@@ -100,8 +87,8 @@ public class TransferMoneyTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
-        int senderAccountId = createAccount(userAuth);
-        int receiverAccountId = createAccount(userAuth);
+        int senderAccountId = AdminSteps.createAccount(userAuth);
+        int receiverAccountId = AdminSteps.createAccount(userAuth);
 
         double bigAmount = 10000.01;
 
@@ -128,7 +115,7 @@ public class TransferMoneyTest extends BaseTest {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
 
-        int senderAccountId = createAccount(userAuth);
+        int senderAccountId = AdminSteps.createAccount(userAuth);
 
         double depositAmount = generateValidTransferAmount();
 
@@ -153,8 +140,8 @@ public class TransferMoneyTest extends BaseTest {
     public void userCannotTransferMoneyWithoutAuthorizationTest() {
         CreateUserRequest createRequest = createRandomUser();
         String userAuth = createAndLoginUser(createRequest);
-        int senderAccountId = createAccount(userAuth);
-        int receiverAccountId = createAccount(userAuth);
+        int senderAccountId = AdminSteps.createAccount(userAuth);
+        int receiverAccountId = AdminSteps.createAccount(userAuth);
 
         double transferAmount = generateValidTransferAmount();
 

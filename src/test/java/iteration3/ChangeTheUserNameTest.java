@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.CrudRequester;
 import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -26,12 +27,13 @@ public class ChangeTheUserNameTest extends BaseTest {
               // .build();
     }
 
-    private String createAndLoginUser(CreateUserRequest createRequest) {//переделан
-        new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.ADMIN_USER,
-                ResponseSpecs.entityWasCreated()
-        ).post(createRequest);
+    private String createAndLoginUser(CreateUserRequest createRequest) {
+        AdminSteps.createUserFromRequest(createRequest);
+      // new ValidatedCrudRequester<CreateUserResponse>(
+      //         RequestSpecs.adminSpec(),
+      //         Endpoint.ADMIN_USER,
+      //         ResponseSpecs.entityWasCreated()
+      // ).post(createRequest);
 
         LoginUserRequest loginRequest = LoginUserRequest.builder()
                 .username(createRequest.getUsername())
@@ -63,14 +65,16 @@ public class ChangeTheUserNameTest extends BaseTest {
     }
 
     @Test
-    public void userCanLoginWithValidDataTest() {
-        CreateUserRequest createRequest = createRandomUser();
+    public void userCanLoginWithValidDataTest() {//нужно
+     //   CreateUserRequest createRequest = createRandomUser();
 
-        new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.ADMIN_USER,
-                ResponseSpecs.entityWasCreated()
-        ).post(createRequest);
+     //   new ValidatedCrudRequester<CreateUserResponse>(
+     //           RequestSpecs.adminSpec(),
+     //           Endpoint.ADMIN_USER,
+     //           ResponseSpecs.entityWasCreated()
+     //   ).post(createRequest);
+
+        CreateUserRequest createRequest = AdminSteps.createUser();
 
         LoginUserRequest loginRequest = LoginUserRequest.builder()
                 .username(createRequest.getUsername())
@@ -139,12 +143,13 @@ public class ChangeTheUserNameTest extends BaseTest {
                 .build();
 
 
-        new ValidatedCrudRequester<UpdateCustomerProfileResponse>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.UPDATE_CUSTOMER_PROFILE,
-                ResponseSpecs.requestReturnsOK()
-        )
-                .update(updateRequest);
+        AdminSteps.updateCustomerProfile(userAuth, updateRequest);
+      // new ValidatedCrudRequester<UpdateCustomerProfileResponse>(
+      //         RequestSpecs.authWithToken(userAuth),
+      //         Endpoint.UPDATE_CUSTOMER_PROFILE,
+      //         ResponseSpecs.requestReturnsOK()
+      // )
+      //         .update(updateRequest);
 
         CustomerProfileResponse response =
                 new ValidatedCrudRequester<CustomerProfileResponse>(

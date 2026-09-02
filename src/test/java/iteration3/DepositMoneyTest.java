@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.CrudRequester;
 import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -30,12 +31,13 @@ public class DepositMoneyTest extends BaseTest {
         return RandomModelGenerator.generate(CreateUserRequest.class);
     }
 
-    private String createAndLoginUser(CreateUserRequest createRequest) {
-        new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.ADMIN_USER,
-                ResponseSpecs.entityWasCreated()
-        ).post(createRequest);
+    private String createAndLoginUser(CreateUserRequest createRequest) {//нужно ли тут менять
+        AdminSteps.createUserFromRequest(createRequest);//вот тут не понятно
+        // new ValidatedCrudRequester<CreateUserResponse>(
+      //         RequestSpecs.adminSpec(),
+      //         Endpoint.ADMIN_USER,
+      //         ResponseSpecs.entityWasCreated()
+      // ).post(createRequest);
 
         LoginUserRequest loginRequest = LoginUserRequest.builder()
                 .username(createRequest.getUsername())
@@ -108,12 +110,7 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(amount)
                 .build();
 
-        DepositResponse response = new ValidatedCrudRequester<DepositResponse>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK()
-        )
-                .post(request);
+        DepositResponse response = AdminSteps.makeDeposit(userAuth, request);
 
         assertThat(response.getId(), equalTo(accountId));
         assertThat(response.getBalance(), equalTo(amount));
@@ -132,15 +129,9 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(depositAmount)
                 .build();
 
-        DepositResponse response = new ValidatedCrudRequester<DepositResponse>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK()
-        )
-                .post(request);
+        DepositResponse response = AdminSteps.makeDeposit(userAuth, request);
 
         ModelAssertions.assertThatModels(request, response).match();
-        assertThat(response.getBalance(), equalTo(depositAmount));
     }
 
     @Test
@@ -157,13 +148,9 @@ public class DepositMoneyTest extends BaseTest {
                 .balance(depositAmount)
                 .build();
 
-        new ValidatedCrudRequester<DepositResponse>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK()
-        ).post(request);
+        AdminSteps.makeDeposit(userAuth,request);
 
-        TransferResponse[] transactions = new ValidatedCrudRequester<TransferResponse>(
+        TransferResponse[] transactions = new ValidatedCrudRequester<TransferResponse>(//подумать вот тут
                 RequestSpecs.authWithToken(userAuth),
                 Endpoint.TRANSACTIONS,
                 ResponseSpecs.requestReturnsOK()
