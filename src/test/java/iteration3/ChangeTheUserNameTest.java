@@ -1,7 +1,9 @@
 package iteration3;
 
 import generators.RandomData;
+import generators.RandomModelGenerator;
 import models.*;
+import models.comparison.ModelAssertions;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import requests.skelethon.Endpoint;
@@ -16,11 +18,12 @@ import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 public class ChangeTheUserNameTest extends BaseTest {
 
     private CreateUserRequest createRandomUser() {
-        return CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        return RandomModelGenerator.generate(CreateUserRequest.class);
+              // CreateUserRequest.builder()
+              // .username(RandomData.getUsername())
+              // .password(RandomData.getPassword())
+              // .role(UserRole.USER.toString())
+              // .build();
     }
 
     private String createAndLoginUser(CreateUserRequest createRequest) {//переделан
@@ -53,8 +56,9 @@ public class ChangeTheUserNameTest extends BaseTest {
         )
                 .post(request);
 
-        assertThat(response.getUsername(), Matchers.equalTo(request.getUsername()));
-        assertThat(response.getRole(), Matchers.equalTo(UserRole.USER.name()));
+       // assertThat(response.getUsername(), Matchers.equalTo(request.getUsername()));
+       // assertThat(response.getRole(), Matchers.equalTo(UserRole.USER.name()));
+        ModelAssertions.assertThatModels(request, response).match();
         assertThat(response.getId(), Matchers.notNullValue());
     }
 
@@ -108,6 +112,7 @@ public class ChangeTheUserNameTest extends BaseTest {
         UpdateCustomerProfileRequest request =
                 UpdateCustomerProfileRequest.builder()
                         .name(randomName)
+                        .role(UserRole.USER.name())//добавила для проверки
                         .build();
 
         UpdateCustomerProfileResponse response =
@@ -118,15 +123,7 @@ public class ChangeTheUserNameTest extends BaseTest {
                 )
                         .update(request);
 
-        assertThat(
-                response.getCustomer().getName(),
-                Matchers.equalTo(randomName)
-        );
-
-        assertThat(
-                response.getCustomer().getRole(),
-                Matchers.equalTo(UserRole.USER.name())
-        );
+        ModelAssertions.assertThatModels(request, response).match();
     }
 
     @Test

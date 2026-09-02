@@ -1,8 +1,10 @@
 package iteration3;
 
 import generators.RandomData;
+import generators.RandomModelGenerator;
 import io.restassured.response.ValidatableResponse;
 import models.*;
+import models.comparison.ModelAssertions;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -25,11 +27,7 @@ import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 public class DepositMoneyTest extends BaseTest {
 
     private CreateUserRequest createRandomUser() {
-        return CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        return RandomModelGenerator.generate(CreateUserRequest.class);
     }
 
     private String createAndLoginUser(CreateUserRequest createRequest) {
@@ -141,7 +139,7 @@ public class DepositMoneyTest extends BaseTest {
         )
                 .post(request);
 
-        assertThat(response.getId(), equalTo(accountId));
+        ModelAssertions.assertThatModels(request, response).match();
         assertThat(response.getBalance(), equalTo(depositAmount));
     }
 

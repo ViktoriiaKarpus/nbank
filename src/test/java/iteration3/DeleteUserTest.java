@@ -1,10 +1,9 @@
 package iteration3;
 
-import generators.RandomData;
+import generators.RandomModelGenerator;
 import models.CreateUserRequest;
 import models.CreateUserResponse;
 import models.DeleteUserResponse;
-import models.UserRole;
 import org.junit.jupiter.api.Test;
 import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.ValidatedCrudRequester;
@@ -15,11 +14,7 @@ public class DeleteUserTest extends BaseTest{
 
     @Test
     public void adminCanDeleteUserByIdTest() {
-        CreateUserRequest createRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
 
         CreateUserResponse createdUser = new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.adminSpec(),
@@ -33,7 +28,7 @@ public class DeleteUserTest extends BaseTest{
         new ValidatedCrudRequester<DeleteUserResponse>(
                 RequestSpecs.adminSpec(),
                 Endpoint.DELETE_USER,
-                ResponseSpecs.requestReturnsOK()
+                ResponseSpecs.userDeletedSuccessfully(userId)
         )
                 .delete(userId);
     }

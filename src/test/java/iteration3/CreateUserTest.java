@@ -1,9 +1,11 @@
 package iteration3;
 
 import generators.RandomData;
+import generators.RandomModelGenerator;
 import models.CreateUserRequest;
 import models.CreateUserResponse;
 import models.UserRole;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,11 +23,7 @@ public class CreateUserTest extends BaseTest{
 
     @Test
     public void adminCanCreateUserWithCorrectData() {
-        CreateUserRequest createUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest createUserRequest = RandomModelGenerator.generate(CreateUserRequest.class);
 
         CreateUserResponse createUserResponse = new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.adminSpec(),
@@ -34,9 +32,10 @@ public class CreateUserTest extends BaseTest{
         )
                 .post(createUserRequest);
 
-        softly.assertThat(createUserRequest.getUsername()).isEqualTo(createUserResponse.getUsername());
-        softly.assertThat(createUserRequest.getPassword()).isNotEqualTo(createUserResponse.getPassword());
-        softly.assertThat(createUserRequest.getRole()).isEqualTo(createUserResponse.getRole());
+       //softly.assertThat(createUserRequest.getUsername()).isEqualTo(createUserResponse.getUsername());
+       //softly.assertThat(createUserRequest.getPassword()).isNotEqualTo(createUserResponse.getPassword());
+       //softly.assertThat(createUserRequest.getRole()).isEqualTo(createUserResponse.getRole());
+        ModelAssertions.assertThatModels(createUserRequest,createUserResponse).match();// password и password не мачется, так как он закещирован
     }
     public static Stream<Arguments> userInvalidData() {
         return Stream.of(

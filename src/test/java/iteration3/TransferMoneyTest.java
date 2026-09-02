@@ -1,6 +1,7 @@
 package iteration3;
 
 import generators.RandomData;
+import generators.RandomModelGenerator;
 import models.*;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
@@ -19,11 +20,7 @@ import io.restassured.response.ValidatableResponse;
 public class TransferMoneyTest extends BaseTest {
 
     private CreateUserRequest createRandomUser() {
-        return CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        return RandomModelGenerator.generate(CreateUserRequest.class);
     }
 
     private String createAndLoginUser(CreateUserRequest createRequest) {
