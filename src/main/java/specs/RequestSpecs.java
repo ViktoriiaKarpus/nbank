@@ -1,20 +1,78 @@
 package specs;
 
+import configs.Config;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import models.LoginUserRequest;
-import requests.LoginUserRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RequestSpecs {
-    private RequestSpecs() {}
+    //мой код
+  // private RequestSpecs() {}
+
+  // public static final String AUTHORIZATION_HEADER = "Authorization";
+  // private static final String ADMIN_AUTH_HEADER = "Basic YWRtaW46YWRtaW4=";
+
+  // private static RequestSpecBuilder defaultRequestBuilder() {
+  //     return new RequestSpecBuilder()
+  //             .setContentType(ContentType.JSON)
+  //             .setAccept(ContentType.JSON)
+  //             .addFilters(List.of(
+  //                     new RequestLoggingFilter(),
+  //                     new ResponseLoggingFilter()
+  //             ))
+  //             .setBaseUri(Config.getProperty("server") + Config.getProperty("apiVersion"));
+  // }
+
+  // public static RequestSpecification unauthSpec() {
+  //     return defaultRequestBuilder().build();
+  // }
+
+  // public static RequestSpecification adminSpec() {
+  //     return defaultRequestBuilder()
+  //             .addHeader(AUTHORIZATION_HEADER, ADMIN_AUTH_HEADER)
+  //             .build();
+  // }
+
+  // public static RequestSpecification authAsUser(String username, String password) {
+  //     String userAuthHeader = new CrudRequester(
+  //             RequestSpecs.unauthSpec(),
+  //             Endpoint.LOGIN,
+  //             ResponseSpecs.requestReturnsOK()
+  //     )
+  //             .post(LoginUserRequest.builder()
+  //                     .username(username)
+  //                     .password(password)
+  //                     .build())
+  //             .extract()
+  //             .header(AUTHORIZATION_HEADER);
+
+  //     return defaultRequestBuilder()
+  //             .addHeader(AUTHORIZATION_HEADER, userAuthHeader)
+  //             .build();
+  // }
+
+  // public static RequestSpecification authWithToken(String token) {
+  //     return defaultRequestBuilder()
+  //             .addHeader(AUTHORIZATION_HEADER, token)
+  //             .build();
+  // }
+
+    private static final Map<String, String> authHeaders =
+            new HashMap<>(Map.of("admin", "Basic YWRtaW46YWRtaW4="));
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String ADMIN_AUTH_HEADER = "Basic YWRtaW46YWRtaW4=";
+
+    private RequestSpecs() {
+    }
 
     private static RequestSpecBuilder defaultRequestBuilder() {
         return new RequestSpecBuilder()
@@ -24,7 +82,10 @@ public class RequestSpecs {
                         new RequestLoggingFilter(),
                         new ResponseLoggingFilter()
                 ))
-                .setBaseUri("http://localhost:4111");
+                .setBaseUri(
+                        Config.getProperty("server")
+                                + Config.getProperty("apiVersion")
+                );
     }
 
     public static RequestSpecification unauthSpec() {
@@ -33,21 +94,35 @@ public class RequestSpecs {
 
     public static RequestSpecification adminSpec() {
         return defaultRequestBuilder()
-                .addHeader(AUTHORIZATION_HEADER, ADMIN_AUTH_HEADER)
+                .addHeader(AUTHORIZATION_HEADER, authHeaders.get("admin"))
                 .build();
     }
 
     public static RequestSpecification authAsUser(String username, String password) {
-        String userAuthHeader = new LoginUserRequester(
-                RequestSpecs.unauthSpec(),
-                ResponseSpecs.requestReturnsOK()
-        )
-                .post(LoginUserRequest.builder()
-                        .username(username)
-                        .password(password)
-                        .build())
-                .extract()
-                .header(AUTHORIZATION_HEADER);
+
+        String userAuthHeader;
+
+        if (!authHeaders.containsKey(username)) {
+
+            userAuthHeader = new CrudRequester(
+                    RequestSpecs.unauthSpec(),
+                    Endpoint.LOGIN,
+                    ResponseSpecs.requestReturnsOK()
+            )
+                    .post(
+                            LoginUserRequest.builder()
+                                    .username(username)
+                                    .password(password)
+                                    .build()
+                    )
+                    .extract()
+                    .header(AUTHORIZATION_HEADER);
+
+            authHeaders.put(username, userAuthHeader);
+
+        } else {
+            userAuthHeader = authHeaders.get(username);
+        }
 
         return defaultRequestBuilder()
                 .addHeader(AUTHORIZATION_HEADER, userAuthHeader)

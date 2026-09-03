@@ -1,14 +1,14 @@
 package iteration3;
 
-
-import generators.RandomData;
 import models.CreateUserRequest;
+import models.CreateUserResponse;
 import models.LoginUserRequest;
-import models.UserRole;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import requests.AdminCreateUserRequester;
-import requests.LoginUserRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -22,27 +22,27 @@ public class LoginUserTest extends BaseTest{
                 .password("admin")
                 .build();
 
-        new LoginUserRequester(
+        new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.unauthSpec(),
+                Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK()
         ).post(userRequest);
     }
 
     @Test
     public void userCanGenerateAuthTokenTest() {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
+    //   CreateUserRequest userRequest = RandomModelGenerator.generate(CreateUserRequest.class);
 
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityWasCreated()
-        ).post(userRequest);
+    //   new ValidatedCrudRequester<CreateUserResponse>(
+    //           RequestSpecs.adminSpec(),
+    //           Endpoint.ADMIN_USER,
+    //           ResponseSpecs.entityWasCreated()
+    //   ).post(userRequest);
 
-        new LoginUserRequester(
+        new CrudRequester(
                 RequestSpecs.unauthSpec(),
+                Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK()
         )
                 .post(LoginUserRequest.builder()

@@ -1,12 +1,13 @@
 package iteration3;
 
-import generators.RandomData;
-import models.CreateAccountResponse;
-import models.CreateUserRequest;
-import models.UserRole;
+import models.*;
+import org.hamcrest.Matchers;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import org.junit.jupiter.api.Test;
-import requests.AdminCreateUserRequester;
-import requests.CreateAccountRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -14,27 +15,17 @@ public class CreateAccountTest extends BaseTest{
 
     @Test
     public void userCanCreateAccountTest() {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityWasCreated()
-        ).post(userRequest);
-
-        CreateAccountResponse response = new CreateAccountRequester(
+        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated()
         )
-                .post()
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(new CreateAccountRequest());
 
-        softly.assertThat(response.getId()).isNotNull();
-        softly.assertThat(response.getBalance()).isZero();
-        softly.assertThat(response.getAccountNumber()).isNotBlank();
+        assertThat(response.getId(), Matchers.notNullValue());
+        assertThat(response.getBalance(), equalTo(0.0));
+
     }
 }

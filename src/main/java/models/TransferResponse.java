@@ -6,17 +6,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DepositResponse extends BaseModel {
 
-    private Integer id;
-    private Double balance;
-    private List<TransferResponse> transactions;
+public class TransferResponse extends BaseModel {
+
+    private Long id;
+    private Double amount;
+    private String type;
+    private String timestamp;
+    private Long relatedAccountId;
 }
