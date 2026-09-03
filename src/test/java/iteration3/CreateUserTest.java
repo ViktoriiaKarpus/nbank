@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.CrudRequester;
 import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.TestDataStorage;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -29,6 +30,8 @@ public class CreateUserTest extends BaseTest{
                 ResponseSpecs.entityWasCreated()
         )
                 .post(createUserRequest);
+
+        TestDataStorage.registerUser(createUserResponse.getId());
 
        //softly.assertThat(createUserRequest.getUsername()).isEqualTo(createUserResponse.getUsername());
        //softly.assertThat(createUserRequest.getPassword()).isNotEqualTo(createUserResponse.getPassword());

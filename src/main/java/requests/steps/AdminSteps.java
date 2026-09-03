@@ -8,25 +8,31 @@ import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
 public class AdminSteps {
-    public static CreateUserRequest createUser(){
+    public static CreateUserRequest createUser() {
         CreateUserRequest userRequest =
                 RandomModelGenerator.generate(CreateUserRequest.class);
 
-        new ValidatedCrudRequester<CreateUserResponse>(
+        CreateUserResponse response = new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.adminSpec(),
                 Endpoint.ADMIN_USER,
                 ResponseSpecs.entityWasCreated()).
                 post(userRequest);
 
+        TestDataStorage.registerUser(response.getId());
+
         return userRequest;
     }
 
     public static CreateUserResponse createUserFromRequest(CreateUserRequest userRequest) {
-        return new ValidatedCrudRequester<CreateUserResponse>(
+        CreateUserResponse response = new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.adminSpec(),
                 Endpoint.ADMIN_USER,
                 ResponseSpecs.entityWasCreated()
         ).post(userRequest);
+
+        TestDataStorage.registerUser(response.getId());
+
+        return response;
     }
 
     public static DeleteUserResponse deleteUser(long userId) {
@@ -85,5 +91,4 @@ public class AdminSteps {
         )
                 .post(request);
     }
-
 }

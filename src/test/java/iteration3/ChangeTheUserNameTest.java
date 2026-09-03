@@ -10,6 +10,7 @@ import requests.skelethon.Endpoint;
 import requests.skelethon.requesters.CrudRequester;
 import requests.skelethon.requesters.ValidatedCrudRequester;
 import requests.steps.AdminSteps;
+import requests.steps.TestDataStorage;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -57,6 +58,8 @@ public class ChangeTheUserNameTest extends BaseTest {
                 ResponseSpecs.entityWasCreated()
         )
                 .post(request);
+
+        TestDataStorage.registerUser(response.getId());
 
        // assertThat(response.getUsername(), Matchers.equalTo(request.getUsername()));
        // assertThat(response.getRole(), Matchers.equalTo(UserRole.USER.name()));
