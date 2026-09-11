@@ -15,8 +15,12 @@ import requests.steps.TestDataStorage;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 public class CreateUserTest extends BaseTest{
 
@@ -33,9 +37,6 @@ public class CreateUserTest extends BaseTest{
 
         TestDataStorage.registerUser(createUserResponse.getId());
 
-       //softly.assertThat(createUserRequest.getUsername()).isEqualTo(createUserResponse.getUsername());
-       //softly.assertThat(createUserRequest.getPassword()).isNotEqualTo(createUserResponse.getPassword());
-       //softly.assertThat(createUserRequest.getRole()).isEqualTo(createUserResponse.getRole());
         ModelAssertions.assertThatModels(createUserRequest,createUserResponse).match();// password и password не мачется, так как он закещирован
     }
     public static Stream<Arguments> userInvalidData() {
@@ -73,5 +74,16 @@ public class CreateUserTest extends BaseTest{
                 Endpoint.ADMIN_USER,
                 ResponseSpecs.requestReturnsBadRequest(errorKey, errorValues)
         ).post(createUserRequest);
+
+        CreateUserResponse[] allUsers = new ValidatedCrudRequester<CreateUserResponse>(
+                RequestSpecs.adminSpec(),
+                Endpoint.ADMIN_USER,
+                ResponseSpecs.requestReturnsOK()
+        ).getList();
+
+        assertThat(
+                Arrays.stream(allUsers).noneMatch(user -> user.getUsername().equals(username)),
+                equalTo(true)
+        );
     }
 }

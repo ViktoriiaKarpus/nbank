@@ -89,4 +89,18 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface<
                 .then()
                 .spec(responseSpecification);
     }
+
+    public String postAndGetHeader(BaseModel model, String headerName) {
+        var body = model == null ? "" : model;
+
+        return given()
+                .spec(requestSpecification)
+                .body(body)
+                .post(endpoint.getUrl())
+                .then()
+                .assertThat()
+                .spec(responseSpecification)
+                .extract()
+                .header(headerName);
+    }
 }

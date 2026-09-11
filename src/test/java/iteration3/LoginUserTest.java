@@ -15,6 +15,7 @@ import specs.ResponseSpecs;
 import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
 public class LoginUserTest extends BaseTest{
+
     @Test
     public void adminCanGenerateAuthTokenTest() {
         LoginUserRequest userRequest = LoginUserRequest.builder()
@@ -32,13 +33,6 @@ public class LoginUserTest extends BaseTest{
     @Test
     public void userCanGenerateAuthTokenTest() {
         CreateUserRequest userRequest = AdminSteps.createUser();
-    //   CreateUserRequest userRequest = RandomModelGenerator.generate(CreateUserRequest.class);
-
-    //   new ValidatedCrudRequester<CreateUserResponse>(
-    //           RequestSpecs.adminSpec(),
-    //           Endpoint.ADMIN_USER,
-    //           ResponseSpecs.entityWasCreated()
-    //   ).post(userRequest);
 
         new CrudRequester(
                 RequestSpecs.unauthSpec(),

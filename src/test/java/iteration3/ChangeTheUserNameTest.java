@@ -19,38 +19,9 @@ import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
 public class ChangeTheUserNameTest extends BaseTest {
 
-    private CreateUserRequest createRandomUser() {
-        return RandomModelGenerator.generate(CreateUserRequest.class);
-              // CreateUserRequest.builder()
-              // .username(RandomData.getUsername())
-              // .password(RandomData.getPassword())
-              // .role(UserRole.USER.toString())
-              // .build();
-    }
-
-    private String createAndLoginUser(CreateUserRequest createRequest) {
-        AdminSteps.createUserFromRequest(createRequest);
-      // new ValidatedCrudRequester<CreateUserResponse>(
-      //         RequestSpecs.adminSpec(),
-      //         Endpoint.ADMIN_USER,
-      //         ResponseSpecs.entityWasCreated()
-      // ).post(createRequest);
-
-        LoginUserRequest loginRequest = LoginUserRequest.builder()
-                .username(createRequest.getUsername())
-                .password(createRequest.getPassword())
-                .build();
-
-        return new ValidatedCrudRequester<LoginUserResponse>(
-                RequestSpecs.unauthSpec(),
-                Endpoint.LOGIN,
-                ResponseSpecs.requestReturnsOK()
-        ).postAndGetHeader(loginRequest, AUTHORIZATION_HEADER);
-    }
-
     @Test
     public void adminCanCreateUserTest() {
-        CreateUserRequest request = createRandomUser();
+        CreateUserRequest request = RandomModelGenerator.generate(CreateUserRequest.class);
 
         CreateUserResponse response = new ValidatedCrudRequester<CreateUserResponse>(
                 RequestSpecs.adminSpec(),
@@ -61,22 +32,12 @@ public class ChangeTheUserNameTest extends BaseTest {
 
         TestDataStorage.registerUser(response.getId());
 
-       // assertThat(response.getUsername(), Matchers.equalTo(request.getUsername()));
-       // assertThat(response.getRole(), Matchers.equalTo(UserRole.USER.name()));
         ModelAssertions.assertThatModels(request, response).match();
         assertThat(response.getId(), Matchers.notNullValue());
     }
 
     @Test
-    public void userCanLoginWithValidDataTest() {//нужно
-     //   CreateUserRequest createRequest = createRandomUser();
-
-     //   new ValidatedCrudRequester<CreateUserResponse>(
-     //           RequestSpecs.adminSpec(),
-     //           Endpoint.ADMIN_USER,
-     //           ResponseSpecs.entityWasCreated()
-     //   ).post(createRequest);
-
+    public void userCanLoginWithValidDataTest() {
         CreateUserRequest createRequest = AdminSteps.createUser();
 
         LoginUserRequest loginRequest = LoginUserRequest.builder()
@@ -95,9 +56,8 @@ public class ChangeTheUserNameTest extends BaseTest {
 
     @Test
     public void getCustomerProfileTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
         CustomerProfileResponse response = new ValidatedCrudRequester<CustomerProfileResponse>(
                 RequestSpecs.authWithToken(userAuth),
                 Endpoint.CUSTOMER_PROFILE,
@@ -111,8 +71,8 @@ public class ChangeTheUserNameTest extends BaseTest {
 
     @Test
     public void updateCustomerProfileTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
 
         String randomName = RandomData.getFullName();
 
@@ -136,8 +96,8 @@ public class ChangeTheUserNameTest extends BaseTest {
     @Test
     public void verifyCustomerProfileAfterUpdating() {
 
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
 
         String randomName = RandomData.getFullName();
 
@@ -147,12 +107,6 @@ public class ChangeTheUserNameTest extends BaseTest {
 
 
         AdminSteps.updateCustomerProfile(userAuth, updateRequest);
-      // new ValidatedCrudRequester<UpdateCustomerProfileResponse>(
-      //         RequestSpecs.authWithToken(userAuth),
-      //         Endpoint.UPDATE_CUSTOMER_PROFILE,
-      //         ResponseSpecs.requestReturnsOK()
-      // )
-      //         .update(updateRequest);
 
         CustomerProfileResponse response =
                 new ValidatedCrudRequester<CustomerProfileResponse>(
@@ -166,30 +120,11 @@ public class ChangeTheUserNameTest extends BaseTest {
         assertThat(response.getRole(), Matchers.is(UserRole.USER));
     }
 
-    @Test
-    public void updateCustomerProfileByAddingJustOneNameTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-
-        String randomName = RandomData.getUsername();
-
-        UpdateCustomerProfileRequest request = UpdateCustomerProfileRequest.builder()
-                .name(randomName)
-                .build();
-
-        new CrudRequester(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.CUSTOMER_PROFILE,
-                ResponseSpecs.requestReturnsBadRequestWithText(ResponseSpecs.NAME_MUST_CONTAIN_TWO_WORDS_WITH_LETTERS_ONLY)
-        )
-                .update(request);
-    }
-
 
     @Test
     public void updateCustomerProfileByAddingJustOneNameNameNotChangedTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
 
         CustomerProfileResponse initialProfile =
                 new ValidatedCrudRequester<CustomerProfileResponse>(

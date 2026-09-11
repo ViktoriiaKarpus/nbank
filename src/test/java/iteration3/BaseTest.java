@@ -22,7 +22,7 @@ public class BaseTest {
         for (Long userId : TestDataStorage.getCreatedUserIds()) {
             try {
                 AdminSteps.deleteUser(userId);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 System.err.println("Cleanup failed for user " + userId + ": " + e.getMessage());
             }
         }

@@ -14,57 +14,22 @@ import specs.ResponseSpecs;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
 import io.restassured.response.ValidatableResponse;
 
+import java.util.Arrays;
+
 public class TransferMoneyTest extends BaseTest {
-
-    private CreateUserRequest createRandomUser() {
-        return RandomModelGenerator.generate(CreateUserRequest.class);
-    }
-
-    private String createAndLoginUser(CreateUserRequest createRequest) {
-        AdminSteps.createUserFromRequest(createRequest);
-
-        LoginUserRequest loginRequest = LoginUserRequest.builder()
-                .username(createRequest.getUsername())
-                .password(createRequest.getPassword())
-                .build();
-
-        return new ValidatedCrudRequester<LoginUserResponse>(
-                RequestSpecs.unauthSpec(),
-                Endpoint.LOGIN,
-                ResponseSpecs.requestReturnsOK()
-        ).postAndGetHeader(loginRequest, AUTHORIZATION_HEADER);
-    }
-
-    private void depositMoney(String userAuth, int accountId, double amount) {
-        DepositRequest request = DepositRequest.builder()
-                .id(accountId)
-                .balance(amount)
-                .build();
-
-        new CrudRequester(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK()
-        ).post(request);
-    }
-
-    private double generateValidTransferAmount() {
-        return RandomData.getTransferAmount();
-    }
 
     @Test
     public void transferMoneyFromTheFirstAccountToTheSecondAccountTest1() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
 
         int senderAccountId = AdminSteps.createAccount(userAuth);
         int receiverAccountId = AdminSteps.createAccount(userAuth);
 
-        double transferAmount = generateValidTransferAmount();
+        double transferAmount = RandomData.getTransferAmount();
 
         DepositRequest depositRequest = DepositRequest.builder()
                 .id(senderAccountId)
@@ -84,8 +49,8 @@ public class TransferMoneyTest extends BaseTest {
 
     @Test
     public void userCannotTransferMoreThan10000Test() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
 
         int senderAccountId = AdminSteps.createAccount(userAuth);
         int receiverAccountId = AdminSteps.createAccount(userAuth);
@@ -108,23 +73,34 @@ public class TransferMoneyTest extends BaseTest {
                 response.extract().statusCode(),
                 equalTo(HttpStatus.SC_BAD_REQUEST)
         );
+
+        TransferResponse[] senderTransactions = new ValidatedCrudRequester<TransferResponse>(
+                RequestSpecs.authWithToken(userAuth),
+                Endpoint.TRANSACTIONS,
+                ResponseSpecs.requestReturnsOK()
+        ).getTransactions(senderAccountId);
+
+        assertThat(
+                Arrays.stream(senderTransactions).noneMatch(t -> t.getType().equals("TRANSFER")),
+                equalTo(true)
+        );
     }
 
     @Test
     public void userCannotTransferMoneyToNonExistingAccountTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
 
         int senderAccountId = AdminSteps.createAccount(userAuth);
 
-        double depositAmount = generateValidTransferAmount();
+        double depositAmount = RandomData.getTransferAmount();
 
-        depositMoney(userAuth, senderAccountId, depositAmount);
+        AdminSteps.depositMoney(userAuth, senderAccountId, depositAmount);
 
         TransferRequest request = TransferRequest.builder()
                 .senderAccountId(senderAccountId)
                 .receiverAccountId(999999)
-                .amount(generateValidTransferAmount())
+                .amount(RandomData.getTransferAmount())
                 .build();
 
         ValidatableResponse response = new CrudRequester(
@@ -138,14 +114,14 @@ public class TransferMoneyTest extends BaseTest {
 
     @Test
     public void userCannotTransferMoneyWithoutAuthorizationTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
         int senderAccountId = AdminSteps.createAccount(userAuth);
         int receiverAccountId = AdminSteps.createAccount(userAuth);
 
-        double transferAmount = generateValidTransferAmount();
+        double transferAmount = RandomData.getTransferAmount();
 
-        depositMoney(userAuth, senderAccountId, transferAmount);
+        AdminSteps.depositMoney(userAuth, senderAccountId, transferAmount);
 
         TransferRequest request = TransferRequest.builder()
                 .senderAccountId(senderAccountId)
@@ -161,5 +137,16 @@ public class TransferMoneyTest extends BaseTest {
                 .post(request);
 
         assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_UNAUTHORIZED));
+
+        TransferResponse[] receiverTransactions = new ValidatedCrudRequester<TransferResponse>(
+                RequestSpecs.authWithToken(userAuth),
+                Endpoint.TRANSACTIONS,
+                ResponseSpecs.requestReturnsOK()
+        ).getTransactions(receiverAccountId);
+
+        assertThat(
+                Arrays.stream(receiverTransactions).noneMatch(t -> t.getType().equals("TRANSFER")),
+                equalTo(true)
+        );
     }
 }

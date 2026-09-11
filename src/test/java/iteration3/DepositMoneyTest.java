@@ -23,48 +23,8 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static specs.RequestSpecs.AUTHORIZATION_HEADER;
 
 public class DepositMoneyTest extends BaseTest {
-
-    private CreateUserRequest createRandomUser() {
-        return RandomModelGenerator.generate(CreateUserRequest.class);
-    }
-
-    private String createAndLoginUser(CreateUserRequest createRequest) {//нужно ли тут менять
-        AdminSteps.createUserFromRequest(createRequest);//вот тут не понятно
-        // new ValidatedCrudRequester<CreateUserResponse>(
-      //         RequestSpecs.adminSpec(),
-      //         Endpoint.ADMIN_USER,
-      //         ResponseSpecs.entityWasCreated()
-      // ).post(createRequest);
-
-        LoginUserRequest loginRequest = LoginUserRequest.builder()
-                .username(createRequest.getUsername())
-                .password(createRequest.getPassword())
-                .build();
-
-        return new ValidatedCrudRequester<LoginUserResponse>(
-                RequestSpecs.unauthSpec(),
-                Endpoint.LOGIN,
-                ResponseSpecs.requestReturnsOK()
-        ).postAndGetHeader(loginRequest, AUTHORIZATION_HEADER);
-    }
-
-    private int createAccount(String userAuth) {
-        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
-                RequestSpecs.authWithToken(userAuth),
-                Endpoint.ACCOUNTS,
-                ResponseSpecs.entityWasCreated()
-        )
-                .post(new CreateAccountRequest());
-
-        return (int) response.getId();
-    }
-
-    private double generateValidDepositAmount() {
-        return RandomData.getDepositAmount();
-    }
 
     public static Stream<Arguments> depositInvalidData() {
         return Stream.of(
@@ -76,9 +36,8 @@ public class DepositMoneyTest extends BaseTest {
 
     @Test
     public void createAccountTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
         CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
                 RequestSpecs.authWithToken(userAuth),
                 Endpoint.ACCOUNTS,
@@ -101,10 +60,9 @@ public class DepositMoneyTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("depositMinAndMaxAllowedAmountData")
     void userCanDepositAllowedAmountTest(double amount) {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-        int accountId = createAccount(userAuth);
-
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
+        int accountId = AdminSteps.createAccount(userAuth);
         DepositRequest request = DepositRequest.builder()
                 .id(accountId)
                 .balance(amount)
@@ -118,11 +76,11 @@ public class DepositMoneyTest extends BaseTest {
 
     @Test
     public void depositValidAmountTest() {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-        int accountId = createAccount(userAuth);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
+        int accountId = AdminSteps.createAccount(userAuth);
 
-        double depositAmount = generateValidDepositAmount();
+        double depositAmount = RandomData.getDepositAmount();
 
         DepositRequest request = DepositRequest.builder()
                 .id(accountId)
@@ -137,18 +95,18 @@ public class DepositMoneyTest extends BaseTest {
     @Test
     public void getAccountTransactionsReturnsDepositRecordTest() {
 
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-        int accountId = createAccount(userAuth);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
+        int accountId = AdminSteps.createAccount(userAuth);
 
-        double depositAmount = generateValidDepositAmount();
+        double depositAmount = RandomData.getDepositAmount();
 
         DepositRequest request = DepositRequest.builder()
                 .id(accountId)
                 .balance(depositAmount)
                 .build();
 
-        AdminSteps.makeDeposit(userAuth,request);
+        AdminSteps.makeDeposit(userAuth, request);
 
         TransferResponse[] transactions = new ValidatedCrudRequester<TransferResponse>(//подумать вот тут
                 RequestSpecs.authWithToken(userAuth),
@@ -169,9 +127,9 @@ public class DepositMoneyTest extends BaseTest {
     @ParameterizedTest
     @MethodSource("depositInvalidData")
     void userCannotDepositInvalidAmountTest(double amount, String expectedErrorMessage) {
-        CreateUserRequest createRequest = createRandomUser();
-        String userAuth = createAndLoginUser(createRequest);
-        int accountId = createAccount(userAuth);
+        CreateUserRequest createRequest = RandomModelGenerator.generate(CreateUserRequest.class);
+        String userAuth = AdminSteps.createAndLoginUser(createRequest);
+        int accountId = AdminSteps.createAccount(userAuth);
 
         DepositRequest request = DepositRequest.builder()
                 .id(accountId)
@@ -185,5 +143,18 @@ public class DepositMoneyTest extends BaseTest {
         ).post(request);
 
         assertThat(response.extract().statusCode(), equalTo(HttpStatus.SC_BAD_REQUEST));
+
+        TransferResponse[] transactions = new ValidatedCrudRequester<TransferResponse>(
+                RequestSpecs.authWithToken(userAuth),
+                Endpoint.TRANSACTIONS,
+                ResponseSpecs.requestReturnsOK()
+        ).getTransactions(accountId);
+
+        assertThat(
+                Arrays.stream(transactions).noneMatch(transaction ->
+                        transaction.getType().equals("DEPOSIT")
+                ),
+                equalTo(true)
+        );
     }
 }
